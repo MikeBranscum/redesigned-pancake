@@ -46,16 +46,17 @@ st.divider()
 
 # --- BATCH ENTRY SECTION ---
 st.subheader("📝 Step 1: Add or Paste Projects")
-st.info("Tip: You can copy multiple rows from Excel and paste (Ctrl+V) directly into the grid below.")
+st.info("Tip: Highlight rows in Excel, copy (Ctrl+C), and paste (Ctrl+V) directly into the grid below.")
 
 # Define the columns for the input grid
 columns = ['Date Received', 'Project ID', 'City, State', 'Fibers', 'Eels', 'Reinforcement']
 
-# Create a 10-row empty starting point
+# Create a 10-row empty starting point in session state
 if 'data_df' not in st.session_state:
     st.session_state.data_df = pd.DataFrame([[""] * len(columns)] * 10, columns=columns)
 
 # Editable Data Grid
+# Note: 'placeholder' removed to ensure compatibility with your Streamlit version
 edited_df = st.data_editor(
     st.session_state.data_df,
     num_rows="dynamic",
@@ -63,8 +64,8 @@ edited_df = st.data_editor(
     hide_index=True,
     column_config={
         "Date Received": st.column_config.DateColumn("Date Received", required=True, format="YYYY-MM-DD"),
-        "Project ID": st.column_config.TextColumn("Project ID", placeholder="XXXX-XXXX", required=True),
-        "City, State": st.column_config.TextColumn("City, State", placeholder="City, State", required=True),
+        "Project ID": st.column_config.TextColumn("Project ID", required=True),
+        "City, State": st.column_config.TextColumn("City, State", required=True),
     }
 )
 
@@ -74,9 +75,11 @@ st.subheader("🚀 Step 2: Sync to PROTO")
 
 if st.button("Upload All Valid Rows to Google Sheets"):
     # Filter out any rows that are missing the core required data
+    # We drop rows where the essential fields are NaN or empty strings
     df_to_upload = edited_df.dropna(subset=['Date Received', 'Project ID', 'City, State'])
-    # Double check that strings aren't just empty spaces
-    df_to_upload = df_to_upload[df_to_upload['Project ID'].str.strip() != ""]
+    
+    # Ensure we aren't uploading rows that are just empty strings
+    df_to_upload = df_to_upload[df_to_upload['Project ID'].astype(str).str.strip() != ""]
     
     num_rows = len(df_to_upload)
 
@@ -115,6 +118,7 @@ if st.checkbox("🔍 View Latest Entries in PROTO"):
     try:
         raw_data = sheet.get_all_records()
         if raw_data:
+            # Show the last 10 entries added to the sheet
             st.dataframe(pd.DataFrame(raw_data).tail(10), use_container_width=True)
     except:
         st.info("Could not load preview. Check spreadsheet permissions.")
