@@ -1,21 +1,18 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import datetime
 import pandas as pd
+from PIL import Image
 
 # --- SECURE CONNECTION SETUP ---
 def get_gspread_client():
-    # Define the scope for Google Sheets and Drive
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    
     try:
-        # Accesses the secrets you will paste into the Streamlit Cloud Dashboard
         creds_info = st.secrets["gcp_service_account"]
         creds = Credentials.from_service_account_info(creds_info, scopes=scope)
         return gspread.authorize(creds)
     except Exception:
-        st.error("❌ Secrets Error: 'gcp_service_account' not found. Check Streamlit Advanced Settings.")
+        st.error("❌ Secrets Error: Check Streamlit Settings.")
         st.stop()
 
 # Initialize connection
@@ -25,72 +22,96 @@ try:
     sheet = sh.sheet1
 except Exception as e:
     st.error(f"⚠️ Connection Error: {e}")
-    st.info("Ensure the 'PROTO' sheet is shared with your Service Account email.")
     st.stop()
 
-# --- APP INTERFACE ---
-st.set_page_config(page_title="PROTO Intake", layout="centered")
+# --- APP LAYOUT (Logo Integration) ---
+st.set_page_config(page_title="Rabine Portal", layout="wide")
 
-st.markdown("### 🏗️ Project Intake Portal")
-st.caption("Tracking: PROTO Spreadsheet | Palatine, IL")
+# Center and display the Rabine logo
+col1, col2, col3 = st.columns([2, 1, 2])
+with col2:
+    logo = Image.open("rabine_logo.png")
+    st.image(logo, use_column_width=True)
 
-# The Form
-with st.form("project_entry", clear_on_submit=True):
-    st.markdown("**Section 1: General Info**")
-    col1, col2 = st.columns(2)
-    with col1:
-        date_received = st.date_input("1. Date Received", value=datetime.now())
-    with col2:
-        project_id = st.text_input("2. Project ID", placeholder="XXXX-XXXX")
+st.markdown("<h3 style='text-align: center; color: black;'>Batch Project Intake Portal</h3>", unsafe_allow_index=True)
+st.caption("Auto-Populating PROTO Spreadsheet | Standardized Data Entry")
+st.divider()
+
+# --- THE BATCH ENTRY SECTION ---
+st.subheader("📝 Step 1: Add or Paste Projects Below")
+st.write("You can paste multiple rows from a spreadsheet or type them in. Required fields: Date, ID, City, State.")
+
+# Create an empty template of 10 rows for the editable grid
+template_rows = 10
+columns = ['1. Date Received', '2. Project ID', '3. City, State', '4. Fibers', '5. Eels', '6. Reinforcement']
+empty_data = {col: [""] * template_rows for col in columns}
+df_template = pd.DataFrame(empty_data)
+
+# Use Streamlit's data_editor for "Excel-like" entry
+# This allows copy/paste (Ctrl+C, Ctrl+V) and multi-select.
+edited_df = st.data_editor(
+    df_template,
+    num_rows="dynamic",
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "1. Date Received": st.column_config.DateColumn("Date Received", required=True),
+        "2. Project ID": st.column_config.TextColumn("Project ID", placeholder="XXXX-XXXX", required=True),
+        "3. City, State": st.column_config.TextColumn("City, State", placeholder="City, State", required=True),
+    }
+)
+
+# --- THE SYNC SECTION ---
+st.divider()
+st.subheader("🚀 Step 2: Review and Sync")
+sync_btn = st.button("Upload All valid Projects to PROTO")
+
+if sync_btn:
+    # 1. Clean up the data: Remove rows that don't have the required fields
+    df_to_upload = edited_df.dropna(subset=['1. Date Received', '2. Project ID', '3. City, State']).reset_index(drop=True)
     
-    city_st = st.text_input("3. City, ST", placeholder="e.g. Palatine, IL")
-
-    st.divider()
+    # Check if there is anything left to upload
+    num_projects = len(df_to_upload)
     
-    st.markdown("**Section 2: Material Specs**")
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        fibers = st.text_input("4. Fibers")
-    with m2:
-        eels = st.text_input("5. Eels")
-    with m3:
-        reinforcement = st.text_input("6. Reinforcement")
-
-    # Submission Logic
-    submit = st.form_submit_button("🚀 Sync to Google Sheets")
-
-    if submit:
-        if not project_id:
-            st.error("Project ID is required.")
-        else:
-            # Mapping to your 14-column spreadsheet structure
+    if num_projects == 0:
+        st.warning("No projects were added. Make sure required fields (Date, ID, City) are filled.")
+    else:
+        st.info(f"Preparing to upload {num_projects} projects...")
+        
+        # 2. Build the list of lists for gspread.append_rows()
+        batch_rows = []
+        for index, row in df_to_upload.iterrows():
+            # Standardize date to string
+            date_str = str(row['1. Date Received'])
+            
+            # MAPPING TO YOUR 14 Headings:
             # 1:Date, 2:ID, 3:City, 4-8:Empty, 9:Fibers, 10:Empty, 11:Eels, 12:Reinf, 13-14:Empty
-            new_row = [
-                str(date_received), # 1
-                project_id,         # 2
-                city_st,            # 3
-                "", "", "", "", "", # 4, 5, 6, 7, 8
-                fibers,             # 9
-                "",                 # 10
-                eels,               # 11
-                reinforcement,      # 12
-                "",                 # 13
-                ""                  # 14
+            mapped_row = [
+                date_str,             # 1
+                row['2. Project ID'], # 2
+                row['3. City, State'], # 3
+                "", "", "", "", "",    # 4, 5, 6, 7, 8
+                row['4. Fibers'],      # 9
+                "",                    # 10
+                row['5. Eels'],        # 11
+                row['6. Reinforcement'], # 12
+                "",                    # 13
+                ""                     # 14
             ]
+            batch_rows.append(mapped_row)
 
-            try:
-                with st.spinner("Uploading..."):
-                    sheet.append_row(new_row)
-                    st.success(f"Project {project_id} added successfully!")
-                    st.balloons()
-            except Exception as e:
-                st.error(f"Failed to sync: {e}")
+        # 3. Sync everything in one shot
+        try:
+            with st.spinner(f"Batch uploading {num_projects} projects..."):
+                sheet.append_rows(batch_rows)
+                st.success(f"Successfully added {num_projects} new projects to PROTO!")
+                st.balloons()
+        except Exception as e:
+            st.error(f"⚠️ Batch Upload Failed: {e}")
 
-# Data Preview
-if st.checkbox("🔍 View Recent Entries"):
-    try:
-        data = sheet.get_all_records()
-        if data:
-            st.dataframe(pd.DataFrame(data).tail(5), use_container_width=True)
-    except:
-        st.info("No data available to preview yet.")
+# --- RECENT ACTIVITY ---
+st.divider()
+if st.checkbox("🔍 View Latest PROTO Entries"):
+    data = sheet.get_all_records()
+    if data:
+        st.dataframe(pd.DataFrame(data).tail(10), use_container_width=True)
