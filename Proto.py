@@ -116,29 +116,3 @@ if st.checkbox("🔍 View Latest Entries in PROTO"):
             st.dataframe(pd.DataFrame(raw_data).tail(10), use_container_width=True)
     except:
         st.info("Could not load preview.")
-streamlit
-gspread
-google-auth
-pandas
-[gcp_service_account]
-type = "service_account"
-project_id = "proto-491818"
-private_key_id = "e893b95ce644cecdfcde89627251461ec526c0b2"
-private_key = "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDwOOIzdH15lAas\nQcokcgKPbgT1Pdp3r8Td44KCJpmyaqXqFw3TLdgC5KYmyG3sgJQKOAOi9b/LgAtk\nSaizNWWIGNZ+WNhZ2zcBxX+CszAlt7xWHKF+0CBAwm9bxlqgbFNMgTRMBdQWGVzq\nhbBlViqJZAYx2qV3iD4M1SRGEoNJa/7T8E8fWasVZAFp4piNRfj6cveyCEUYtMVf\npTrevZF2OMEj5IV1Fj7gMuzq4lB71ar47wf6WnrMaJj9XOdp/Cs9+hojUTrEdbDe\n2zL6F3ul1v9C5yPzV7GXE5e4yRqT4uvvSxy6IziPzrqrG/l+H0Se2IdCamZ11wPX\nnwDcjwtvAgMBAAECggEABEywV8Vs/YEVwX2H9bEItLJ+ajlKMLw3pNUOn++67oOU\nJqV0/OOkKyEWjDkoJoSCodAw2HjXjvfivE/JMjPxdkcjh61lae5PhLuZNaipYvNv\n7oaiqVdmTGJuhdD+DEMEFql1Wyr7ic24aQYtixLIvh7JMZk9Pu90VNx3wr1QFj9M\ntdEkQQjG21Qp/Sea4mW54suW4/LBwlpPrJnuY915gxuJfUqI202I/iIOJOacsx9R\ngYKd10BfTyIlE0UHHV87YIREI8Tn+41/FRJYTj62Vi2LZixJptya4Q78dxGSBGSb\nbXIjEfwLDxdH8EA2Wms0KMtdowyaM5wpu6xCcw9vIQKBgQD/SVqa6S6VtML53nQG\nG7wokQeM1iyLSm/OrdfTUyhH4TPRFMYp4S3OlWoFquOht382P7NrJgUEH9zliwyO\nh9fK3dpqlreO2mE4bNv7oCc00DqGpHMP9NmAe44woBDZ/e2+4mLHEl8Da2zTFQzb\n29pWg9CGgFckAcEz3cg9KTRDHwKBgQDw5MB22MDSkmJS/MoB9zBFtpL89v9dBzc1\nWX/uByOABBg7LCPIFJYYoWrHnTz4J6J8ZkYC/xAobq8Cy/1UpkSDWW+jUeH2491V\nntymvsNo54h8LCl6GX/GrY48huzUkCWqT5EkhiHTHxIFXpeaxKFW3O93LIan4/b3\nE8/BAwn9sQKBgGonopmQJWLzS7CDpFN17QQharZRySwSw/N5rqmdhr59EwL6VHzN\nujKRRwkcSpPQrgFs87q2kJdqeHyrGYmbS0x8fHqeOa4ZeRvxiHhV3HfFrtCWSZJ1\nCoy21CW8KcW8JcSedty48vGFFjegJTy3a09WeLu1WocKg8CBlOZ539WZAoGAfLdR\n1bX+joZvFVv/EelyOoV9sC4Io5c6xAokK43SmVKFYQ1HMS1HUFUxvUrw5+FNRG6G\nzMJVETnMrfwCmjLCweYp4DpibLooO03WGxYkgUlt5ivPBYHyH2B3hWqtbpd6iKRN\nFsXC+VTataD1iJFInnogGGkbBg0GLYE6TElQgOECgYB5zUmwzu708d5a+I1ik7Y6\nCyuPuDPEk14IcGUksfaxHZiwJ6lLFhvPC58sgPcgmHqIP9uLoH+r4M1xxtL9/e8k\nfO5Z3jq5Qf+f4/w57QQ/PhBeOSdgs7/yuYMyHTgO2FBKkenAiWzvi/kelncZqq9X\ntSBauTxom/zB//GU3jJUjQ==\n-----END PRIVATE KEY-----\n"
-client_email = "pancake-sync@proto-491818.iam.gserviceaccount.com"
-client_id = "110172129448680228974"
-auth_uri = "https://accounts.google.com/o/oauth2/auth"
-token_uri = "https://oauth2.googleapis.com/token"
-auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/pancake-sync%40proto-491818.iam.gserviceaccount.com"
-universe_domain = "googleapis.com"
-
-# Ignore local secrets
-.streamlit/secrets.toml
-
-# Ignore Python cache
-__pycache__/
-*.py[cod]
-
-# Ignore the old JSON key if you still have it
-service_account.json
